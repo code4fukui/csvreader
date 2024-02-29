@@ -1,0 +1,116 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><link rel="icon" href="data:">
+<title>CSV reader</title>
+<body>
+<header>
+<h1>CSV reader</h1>
+<div>CSVファイルをドロップすると読むことができます（Excel形式でもOK）</div>
+</header>
+
+<main>
+<input id="inpfilter" placeholder="フィルタ"><br>
+<div id=main></div>
+</main>
+
+<footer>
+<a href=https://github.com/code4fukui/csvreader/>src on GitHub</a><br>
+</footer>
+
+<script type="module">
+import { setDropFilesListener } from "https://js.sabae.cc/setDropFilesListener.js";
+import { waitFileRead } from "https://js.sabae.cc/waitFileRead.js";
+import { XLSX } from "https://taisukef.github.io/sheetjs-es/es/XLSX.js";
+import { CSV } from "https://js.sabae.cc/CSV.js";
+
+const addData = (data) => {
+  const cr = (tag, parent) => {
+    const c = document.createElement(tag);
+    if (parent) parent.appendChild(c);
+    return c;
+  };
+  const div = cr("div");
+  for (const name in data) {
+    const v = data[name];
+    if (!v) continue;
+    const div2 = cr("div", div);
+    const spanname = cr("span", div2);
+    spanname.textContent = name + ": ";
+    const spanval = cr("b", div2);
+    spanval.textContent = v;
+  }
+  cr("hr", div);
+  main.prepend(div);
+};
+
+setDropFilesListener(document.body, async (files) => {
+  const data = [];
+  for (const file of files) {
+    const fn = file.file.name;
+    const bin = await waitFileRead(file.file);
+    const lfn = fn.toLowerCase();
+    if (lfn.endsWith(".csv")) {
+      const d = CSV.toJSON(CSV.decode(new TextDecoder().decode(bin)));
+      d.forEach(i => data.push(i));
+    } else if (lfn.endsWith(".xls") || lfn.endsWith(".xlsx")) {
+      const ws = XLSX.decode(bin);
+      const multisheets = true;
+      const csvs = XLSX.toCSV(ws, multisheets);
+      for (const csv of csvs) {
+        const d = CSV.toJSON(csv);
+        d.forEach(i => data.push(i));
+      }
+    }
+  }
+  for (const d of data) {
+    addData(d);
+  }
+  inpfilter.oninput();
+});
+
+inpfilter.oninput = () => {
+  const keys = inpfilter.value.split(" ").map(i => i.trim());
+  for (const c of main.childNodes) {
+    const txt = c.textContent;
+    let flg = true;
+    for (const key of keys) {
+      if (txt.indexOf(key) == -1) {
+        flg = false;
+        break;
+      }
+    }
+    c.style.display = flg ? "" : "none";
+  }
+};
+</script>
+
+<style>
+body {
+  font-family: sans-serif;
+  height: 100vh;
+  margin: 0;
+}
+header {
+  background: lightgray;
+  padding: 1em;
+}
+h1 {
+  margin: .2em 0;
+}
+main {
+  padding: 1em;
+}
+input {
+  width: calc(100% - 1em);
+  font-size: 120%;
+  padding: .2em;
+  margin: .5em 0;
+}
+footer {
+  margin: 1em;
+}
+a {
+  color: gray !important;
+}
+</style>
+
+</body>
+</html>
