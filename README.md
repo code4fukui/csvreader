@@ -1,5 +1,7 @@
 # csvreader
 
+> 日本語のREADMEはこちらです: [README.ja.md](README.ja.md)
+
 A simple CSV reader application that allows you to drop CSV or Excel files and view their contents.
 
 ## Demo
