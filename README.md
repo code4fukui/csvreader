@@ -22,4 +22,4 @@ No special requirements. The application runs in a web browser.
 4. Use the filter input to search through the data
 
 ## License
-MIT License
+MIT License — see [LICENSE](LICENSE).
